@@ -1,0 +1,57 @@
+#!/usr/bin/python3
+
+from PIL import Image, ImageDraw, ImageFont
+import random
+import string
+from os import environ
+import os
+import sys
+
+if environ.get('FLAG', '').strip() == '':
+    sys.stderr.write("Flag needs to be provided in FLAG env variable\n")
+    sys.exit(1)
+
+# Get the path of the script
+script_path = os.path.dirname(os.path.abspath(__file__))
+
+# Input and output filenames
+input_image = os.path.join(script_path, "src", "img.jpg")
+output_image = "tokyo.jpg"
+
+# Function to generate a random string and position
+def generate_random_string_position(draw, width, height):
+    suffix = ''.join(random.choices(string.digits + 'abcdef', k=16))
+    random_string = "falg{"+suffix+"}"
+    x_position = random.randint(0, width - 100)
+    y_position = random.randint(0, height - 20)
+    draw.text((x_position, y_position), random_string, fill=(255,255,255,int(0.8*255)), font=ImageFont.load_default(), anchor="lt", spacing=0, align="left", direction=None, features=None, language=None, stroke_width=0)
+
+# Open the input image
+img = Image.open(input_image).convert("RGBA")
+
+# Get the width and height of the image
+width, height = img.size
+
+# Create a drawing object with a transparent background
+txt = Image.new('RGBA', img.size, (255, 255, 255, 0))
+draw = ImageDraw.Draw(txt)
+
+# Generate random strings and positions
+for _ in range(99):
+    generate_random_string_position(draw, width, height)
+    
+x_position = random.randint(0, width - 100)
+y_position = random.randint(0, height - 20)
+draw.text((x_position, y_position), environ['FLAG'], fill=(255,255,255,int(0.8*255)), font=ImageFont.load_default(), anchor="lt", spacing=0, align="left", direction=None, features=None, language=None, stroke_width=0)
+
+# Composite the text image with the original image
+combined = Image.alpha_composite(img, txt)
+
+# Convert the image to RGB before saving
+combined = combined.convert("RGB")
+
+# Save the output image
+combined.save(output_image)
+
+print(f"Superimposed text on the image. Output saved as {output_image}.")
+
